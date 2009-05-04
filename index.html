@@ -6,30 +6,129 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<title>Blather: an evented XMPP library for Ruby</title>
 
-  <style type="text/css" media="screen">
-    #fork_me {position: absolute; top: 0; right: 0; border: 0;}
-    
-  </style>
+  <link rel="stylesheet" href="style.css" type="text/css" media="screen" charset="utf-8" />
 </head>
 
 <body>
   <a href="http://github.com/sprsquish/blather"><img id='fork_me' src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" /></a>
 
-  <h1>Blather</h1>
-  <h2>Simpler XMPP</h2>
+  <div id='content'>
+    <h1>Blather</h1>
+    <h2>Simpler XMPP</h2>
 
-  <p>
-    Blather started as an itch. I wanted a way of quickly creating a simple XMPP bot.
-  </p>
+    <p>
+      Blather is an evented XMPP library written in Ruby on <a href='http://rubyeventmachine.com/'>EventMachine</a>
+      and <a href='http://libxml.rubyforge.org/'>libxml</a>.
+    </p>
 
-  <h3>Step 1:</h3>
-  <p>Create a DSL:</p>
-  
+    <h3>Getting Started</h3>
+    <p>Blather comes with a DSL that makes writing XMPP bots quick and easy:</p>
+    <pre><code>require 'rubygems'
+require 'blather/client'
 
-  <script type="text/javascript">
-    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-  </script>
+setup 'echo@jabber.local', 'echo'
+
+# Auto approve subscription requests
+subscription :request? do |s|
+  write s.approve!
+end
+
+# Echo back what was said
+message :chat?, :body do |m|
+  write m.reply
+end</code></pre>
+
+    <h3>Handlers</h3>
+    <p>
+      Handlers let Blather know how you'd like each type of stanza to be well.. handled. Each type of stanza has an associated
+      handler which is part of a handler hierarchy. In the example above we're handling <code>message</code> and <code>subscription</code>
+      stanzas.
+    </p>
+    <p>
+      XMPP is built on top of three main stanza types (presence, message, and iq). All other stanzas are built on these three base
+      types. This creates a natural hierarchy of handlers. For example a <code>subscription</code> stanza is a type of <code>presence</code>
+      stanza and can be processed by a <code>subscription</code> handler or a <code>presence</code> handler. If you've done any DOM
+      programming you'll be familiar with this.
+    </p>
+    <p>
+      Incoming stanzas will be handled by the first handler found. Unlike the DOM this will stop the handling bubble unless the handler
+      returns <code>false</code>. 
+    </p>
+    <!-- <p>
+      You can see the <a href='handlers.html'>entire handler hierarchy here.</a>
+    </p> -->
+
+    <h4>Example:</h4>
+    <p>
+      Here we have a <code>presence</code> handler and a <code>subscription</code> handler. When this script receives a <code>subscription</code>
+      stanza the <code>subscription</code> handler will be notified first. If that handler doesn't know what to do it can return <code>false</code>
+      and let the stanza bubble up to the <code>presence</code> handler.
+    </p>
+    <pre><code class='block'># Handle all presence stanzas
+presence do |stanza|
+  # do stuff
+end
+
+# Handle all subscription stanzas
+subscription do |stanza|
+  # do stuff
+end</code></pre>
+
+    <h3>Guards</h3>
+    <p>
+      If you played with <a href='http://erlang.org/'>Erlang</a> at all the next section should look somewhat familiar. The idea behind guards
+      was borrowed directly from Erlang.
+    </p>
+    <p>
+      Guards allow multiple instances of a handler to be created that handle different versions of the same stanza. XMPP is a message
+      passing protocol. It only follows that an XMPP DSL should borrow from message passing languages.
+    </p>
+    <p>
+      Guards come in 4 flavors with one extra bit of syntax sugar. Chained guards are considered to be combined with <code>&amp;&amp;</code>.
+    </p>
+
+    <dl>
+      <dt>Symbols</dt>
+      <dd>
+        Symbols are called directly on the stanza. Any method can be called this way. If it returns non-false (nil or false) it
+        will be handled. 
+        <pre><code class='block'>message :chat?, :body
+is equivalent to "handle a message stanza where
+(stanza.chat? &amp;&amp; stanza.body) is true"</code></pre>
+      </dd>
+
+      <dt>Hash with value</dt>
+      <dd>
+        Hashes check for equality. The key is called on the stanza and checked for equality against the value
+        <pre><code class='block'>message :body => 'exit'
+is equivalent to "handle a message stanza where stanza.body == 'chat'"</code></pre>
+      </dd>
+
+      <dt>Hash with regular expression</dt>
+      <dd>
+        Like hash-with-value the key is called on the stanza and matched against the regex
+        <pre><code class='block'>message :body => /blather/
+is equivalent to "handle a message stanza where stanza.body =~ /blather/"</code></pre>
+      </dd>
+
+      <dt>Block</dt>
+      <dd>
+        As you might expect blocks will have the stanza passed to them where complex logic can be run.
+        <pre><code class='block'>message lambda { |stanza| stanza.id % 3 == 0 }
+is equivalent to "handle a message stanza where stanza.id is a divisor of 3"</code></pre>
+      </dd>
+
+      <dt>Sugar (combining with Array):</dt>
+      <dd>
+        All guard types can be combined in an array turning the combination from <code>&amp;&amp;</code> to <code>||</code>.
+        <pre><code class='block'>message [{:body => 'foo'}, {:id => 10}]
+is equivalent to "handle a message stanza where
+stanza.body == "foo" or stanza.id == 10</code></pre>
+      </dd>
+    </dl>
+  </div>
+
+  <script type='text/javascript' src='http://www.google-analytics.com/ga.js'></script>
   <script type="text/javascript">
     try {
       var pageTracker = _gat._getTracker("UA-3755481-3");
