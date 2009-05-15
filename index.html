@@ -111,6 +111,13 @@ is equivalent to "handle a message stanza where stanza.body == 'chat'"</code></p
 is equivalent to "handle a message stanza where stanza.body =~ /blather/"</code></pre>
       </dd>
 
+      <dt>Hash with array</dt>
+      <dd>
+        Hash with array (:name => [:gone, :forbidden])
+        <pre><code class='block'>stanza_error :name => [:gone, :fobidden]
+is equivalent to [:gone, :forbidden].include?(stanza.name)</code></pre>
+      </dd>
+
       <dt>Block</dt>
       <dd>
         As you might expect blocks will have the stanza passed to them where complex logic can be run.
@@ -126,6 +133,18 @@ is equivalent to "handle a message stanza where
 stanza.body == "foo" or stanza.id == 10</code></pre>
       </dd>
     </dl>
+
+    <h3>Command Line Arguments</h3>
+    <p>
+      Without specifying a <code>setup</code> in the script the default command line arguments are:
+    </p>
+    <pre><code>Usage: [blather_script] [options] node@domain.com/resource password [host] [port]
+    -D, --debug                      Run in debug mode
+    -d, --daemonize                  Daemonize the process
+        --pid=[PID]                  Write the PID to this file
+        --log=[LOG]                  Write stdout/stderr to the [LOG] file
+    -h, --help                       Show this message
+    -v, --version                    Show version</code></pre>
   </div>
 
   <script type='text/javascript' src='http://www.google-analytics.com/ga.js'></script>
