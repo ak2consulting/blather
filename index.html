@@ -145,6 +145,29 @@ stanza.body == "foo" or stanza.id == 10</code></pre>
         --log=[LOG]                  Write stdout/stderr to the [LOG] file
     -h, --help                       Show this message
     -v, --version                    Show version</code></pre>
+
+    <h3>Current Handler Heirarchy</h3>
+    <pre><code>iq
+`-- query
+    |-- disco_info
+    |-- disco_items
+    `-- roster
+
+message
+
+presence
+|-- status
+`-- subscription
+
+error
+|-- argument_error
+|-- parse_error
+|-- sasl_error
+|-- stanza_error
+|-- stream_error
+|-- tls_failure
+`-- unknown_response_error</pre></code>
+
   </div>
 
   <script type='text/javascript' src='http://www.google-analytics.com/ga.js'></script>
