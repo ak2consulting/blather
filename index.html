@@ -17,8 +17,8 @@
     <h2>Simpler XMPP</h2>
 
     <p>
-      Blather is an evented XMPP library written in Ruby on <a href='http://rubyeventmachine.com/'>EventMachine</a>
-      and <a href='http://libxml.rubyforge.org/'>libxml</a>.
+      XMPP DSL for Ruby written on <a href='http://rubyeventmachine.com/'>EventMachine</a>
+      and <a href='http://nokogiri.rubyforge.org/nokogiri/README_rdoc.html'>Nokogiri</a>.
     </p>
 
     <h3>Getting Started</h3>
@@ -125,6 +125,14 @@ is equivalent to [:gone, :forbidden].include?(stanza.name)</code></pre>
 is equivalent to "handle a message stanza where stanza.id is a divisor of 3"</code></pre>
       </dd>
 
+      <dt>XPath</dt>
+      <dd>
+        Runs the xpath query on the stanza and returns the result if it's non-empty.
+        This guard cannot be combined with other guards.
+        <pre><code class='block'>iq '/iq/ns:pubsub', :ns => 'pubsub:namespace'
+is equivalent to !stanza.find('/iq/ns:pubsub', :ns => 'pubsub:namespace').empty?</code></pre>
+      </dd>
+
       <dt>Sugar (combining with Array):</dt>
       <dd>
         All guard types can be combined in an array turning the combination from <code>&amp;&amp;</code> to <code>||</code>.
@@ -148,12 +156,26 @@ stanza.body == "foo" or stanza.id == 10</code></pre>
 
     <h3>Current Handler Heirarchy</h3>
     <pre><code>iq
+|-- pubsub_node
+|   |-- pubsub_affiliations
+|   |-- pubsub_create
+|   |-- pubsub_items
+|   |-- pubsub_publish
+|   |-- pubsub_retract
+|   |-- pubsub_subscribe
+|   |-- pubsub_subscription
+|   |-- pubsub_subscriptions
+|   `-- pubsub_unsubscribe
+|-- pubsub_owner
+|   |-- pubsub_delete
+|   `-- pubsub_purge
 `-- query
     |-- disco_info
     |-- disco_items
     `-- roster
 
 message
+`-- pubsub_event
 
 presence
 |-- status
@@ -163,6 +185,7 @@ error
 |-- argument_error
 |-- parse_error
 |-- sasl_error
+|-- sasl_unknown_mechanism
 |-- stanza_error
 |-- stream_error
 |-- tls_failure
